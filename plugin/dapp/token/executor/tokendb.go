@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/33cn/chain33/account"
+	"github.com/33cn/chain33/common/address"
 	dbm "github.com/33cn/chain33/common/db"
 	"github.com/33cn/chain33/system/dapp"
 	"github.com/33cn/chain33/types"
@@ -129,7 +130,11 @@ func (action *tokenAction) preCreate(token *pty.TokenPreCreate) (*types.Receipt,
 	if checkTokenHasPrecreate(token.GetSymbol(), token.GetOwner(), pty.TokenStatusPreCreated, action.db) {
 		return nil, pty.ErrTokenHavePrecreated
 	}
-
+	if types.IsDappFork(action.height, pty.TokenX, "ForkTokenCheckAddress") {
+		if err := address.CheckAddress(token.Owner); err != nil {
+			return nil, err
+		}
+	}
 	if types.IsDappFork(action.height, pty.TokenX, pty.ForkTokenBlackListX) {
 		found, err := inBlacklist(token.GetSymbol(), blacklist, action.db)
 		if err != nil {
